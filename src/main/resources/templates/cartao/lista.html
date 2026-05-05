@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Cartões de Crédito</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+        <div th:if="${mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i><span th:text="${mensagem}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-credit-card-2-front me-2" style="color: #e74c3c;"></i>
+                    Cartões de Crédito — <span th:text="${pessoa.nome}">Nome</span>
+                </h3>
+                <div class="d-flex gap-3 mt-1">
+                    <a th:href="@{/}" class="text-muted text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Início</a>
+                    <a th:href="@{/controle/{id}(id=${pessoa.id})}" class="text-muted text-decoration-none"><i class="bi bi-bar-chart me-1"></i>Controle</a>
+                </div>
+            </div>
+            <a th:href="@{/cartoes/{id}/novo(id=${pessoa.id})}" class="btn btn-danger">
+                <i class="bi bi-plus-lg me-1"></i>Novo Cartão
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(cartoes)}" class="text-center py-5 text-muted">
+            <i class="bi bi-credit-card display-1"></i>
+            <h5 class="mt-3">Nenhum cartão cadastrado</h5>
+            <a th:href="@{/cartoes/{id}/novo(id=${pessoa.id})}" class="btn btn-danger mt-2">
+                <i class="bi bi-plus-lg me-1"></i>Cadastrar Cartão
+            </a>
+        </div>
+
+        <div class="row">
+            <div th:each="cartao : ${cartoes}" class="col-md-4 mb-4">
+                <div class="card resumo-card h-100 border-top border-4 border-danger">
+                    <div class="card-body text-center">
+                        <i class="bi bi-credit-card-2-front display-4 text-danger"></i>
+                        <h5 class="mt-2" th:text="${cartao.nome}">Cartão</h5>
+                        <p class="text-muted mb-1" th:if="${cartao.bandeira}" th:text="${cartao.bandeira}">Bandeira</p>
+                        <p class="text-muted small">Vencimento: dia <span th:text="${cartao.diaVencimento}">10</span></p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <a th:href="@{/cartoes/{pid}/{cid}/fatura(pid=${pessoa.id}, cid=${cartao.id})}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-receipt me-1"></i>Ver Fatura
+                            </a>
+                            <a th:href="@{/cartoes/{pid}/{cid}/editar(pid=${pessoa.id}, cid=${cartao.id})}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a th:href="@{/cartoes/{pid}/{cid}/excluir(pid=${pessoa.id}, cid=${cartao.id})}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Excluir este cartão e todos os seus gastos?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

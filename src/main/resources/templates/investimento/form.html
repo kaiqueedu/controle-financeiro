@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Investimento</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-white" style="background-color: #6f42c1;">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+                            <span th:text="${investimento.id != null ? 'Editar Investimento' : 'Novo Investimento'}">Investimento</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            <i class="bi bi-person me-1"></i>
+                            <span th:text="${pessoa.nome}">Nome</span>
+                        </p>
+
+                        <form th:action="@{/investimentos/{id}/salvar(id=${pessoa.id})}"
+                              th:object="${investimento}" method="post">
+                            <input type="hidden" th:field="*{id}">
+
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="descricao" th:field="*{descricao}"
+                                       th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"
+                                       placeholder="Ex: CDB 120%, LCI Banco X, Ações PETR4" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="banco" class="form-label">Banco/Corretora <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="banco" th:field="*{banco}"
+                                       th:classappend="${#fields.hasErrors('banco')} ? 'is-invalid'"
+                                       placeholder="Ex: Nubank, Inter, XP, BTG" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('banco')}" th:errors="*{banco}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="valor" class="form-label">Valor (R$) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="valor" th:field="*{valor}"
+                                       th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'"
+                                       step="0.01" min="0.01" placeholder="0,00" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="dataInvestimento" class="form-label">Data do investimento <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dataInvestimento" th:field="*{dataInvestimento}"
+                                       th:classappend="${#fields.hasErrors('dataInvestimento')} ? 'is-invalid'" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('dataInvestimento')}" th:errors="*{dataInvestimento}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tipoInvestimento" class="form-label">Tipo de investimento</label>
+                                <select class="form-select" id="tipoInvestimento" th:field="*{tipoInvestimento}">
+                                    <option value="">Selecione (opcional)</option>
+                                    <option value="Renda Fixa">Renda Fixa</option>
+                                    <option value="CDB">CDB</option>
+                                    <option value="LCI/LCA">LCI/LCA</option>
+                                    <option value="Tesouro Direto">Tesouro Direto</option>
+                                    <option value="Ações">Ações</option>
+                                    <option value="FII">FII (Fundos Imobiliários)</option>
+                                    <option value="Fundos">Fundos de Investimento</option>
+                                    <option value="Crypto">Criptomoedas</option>
+                                    <option value="Poupança">Poupança</option>
+                                    <option value="Previdência">Previdência Privada</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="observacoes" class="form-label">Observações</label>
+                                <textarea class="form-control" id="observacoes" th:field="*{observacoes}"
+                                          rows="2" placeholder="Informações adicionais (opcional)"></textarea>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn text-white" style="background-color: #6f42c1;">
+                                    <i class="bi bi-check-lg me-1"></i>Salvar
+                                </button>
+                                <a th:href="@{/investimentos/{id}(id=${pessoa.id})}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Voltar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

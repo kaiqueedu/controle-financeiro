@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Receita</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-arrow-up-circle me-2"></i>
+                            <span th:text="${receita.id != null ? 'Editar Receita' : 'Nova Receita'}">Receita</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            <i class="bi bi-person me-1"></i>
+                            <span th:text="${pessoa.nome}">Nome</span>
+                        </p>
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Receitas são fixas e aparecem automaticamente em todos os meses.
+                            Você pode editar o valor ou excluir a qualquer momento.
+                        </div>
+
+                        <form th:action="@{/controle/{id}/receita/salvar(id=${pessoa.id})}"
+                              th:object="${receita}" method="post">
+                            <input type="hidden" th:field="*{id}">
+                            <input type="hidden" name="mesAtual" th:value="${mesAtual}">
+                            <input type="hidden" name="anoAtual" th:value="${anoAtual}">
+
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="descricao" th:field="*{descricao}"
+                                       th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"
+                                       placeholder="Ex: Salário, Freelance, Aluguel recebido" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="valor" class="form-label">Valor (R$) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="valor" th:field="*{valor}"
+                                       th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'"
+                                       step="0.01" min="0.01" placeholder="0,00" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="diaRecebimento" class="form-label">Dia do recebimento <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="diaRecebimento" th:field="*{diaRecebimento}"
+                                       th:classappend="${#fields.hasErrors('diaRecebimento')} ? 'is-invalid'"
+                                       min="1" max="31" required>
+                                <div class="form-text">Dia do mês em que a receita é recebida (1 a 31)</div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('diaRecebimento')}" th:errors="*{diaRecebimento}">Erro</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-lg me-1"></i>Salvar
+                                </button>
+                                <a th:href="@{/controle/{id}(id=${pessoa.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                   class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Voltar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

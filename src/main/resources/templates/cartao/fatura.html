@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Fatura do Cartão</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+        <div th:if="${mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i><span th:text="${mensagem}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <!-- Cabeçalho -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-credit-card-2-front text-danger me-2"></i>
+                    <span th:text="${cartao.nome}">Cartão</span>
+                    <span th:if="${cartao.bandeira}" class="badge bg-light text-dark border ms-2 small" th:text="${cartao.bandeira}">Visa</span>
+                </h3>
+                <div class="d-flex gap-3 mt-1">
+                    <a th:href="@{/cartoes/{id}(id=${pessoa.id})}" class="text-muted text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Meus Cartões
+                    </a>
+                    <a th:href="@{/controle/{id}(id=${pessoa.id})}" class="text-muted text-decoration-none">
+                        <i class="bi bi-bar-chart me-1"></i>Controle
+                    </a>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a th:href="@{/cartoes/{pid}/{cid}/fatura(pid=${pessoa.id}, cid=${cartao.id}, mes=${mesAnteriorMes}, ano=${mesAnteriorAno})}"
+                   class="btn btn-outline-danger btn-nav-mes"><i class="bi bi-chevron-left"></i></a>
+                <h5 class="mb-0 px-3 text-capitalize">
+                    <span th:text="${T(java.time.Month).of(mesAtual).getDisplayName(T(java.time.format.TextStyle).FULL, new java.util.Locale('pt','BR'))}">Mês</span>
+                    <span th:text="${anoAtual}">Ano</span>
+                </h5>
+                <a th:href="@{/cartoes/{pid}/{cid}/fatura(pid=${pessoa.id}, cid=${cartao.id}, mes=${mesSeguinteMes}, ano=${mesSeguinteAno})}"
+                   class="btn btn-outline-danger btn-nav-mes"><i class="bi bi-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <!-- Total da fatura -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card resumo-card border-start border-4" th:classappend="${faturaPaga ? 'border-success' : 'border-danger'}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1 small">Total da Fatura</p>
+                                <h3 class="mb-1" th:classappend="${faturaPaga ? 'text-success' : 'text-danger'}"
+                                    th:text="'R$ ' + ${#numbers.formatDecimal(totalFatura, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</h3>
+                                <small class="text-muted">Vencimento: dia <span th:text="${cartao.diaVencimento}">10</span></small>
+                            </div>
+                            <div>
+                                <span th:if="${faturaPaga}" class="badge bg-success fs-6">
+                                    <i class="bi bi-check-lg"></i> Paga
+                                </span>
+                                <span th:unless="${faturaPaga}" class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-clock"></i> Pendente
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a th:if="${!faturaPaga}"
+                               th:href="@{/cartoes/{pid}/{cid}/pagar(pid=${pessoa.id}, cid=${cartao.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                               class="btn btn-success btn-sm">
+                                <i class="bi bi-check-lg me-1"></i>Marcar como Paga
+                            </a>
+                            <a th:if="${faturaPaga}"
+                               th:href="@{/cartoes/{pid}/{cid}/despagar(pid=${pessoa.id}, cid=${cartao.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                               class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Desmarcar Pagamento
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos do cartão -->
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Gastos da Fatura</h5>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/cartoes/{pid}/{cid}/gasto/novo(pid=${pessoa.id}, cid=${cartao.id}, fixo=true, mes=${mesAtual}, ano=${anoAtual})}"
+                       class="btn btn-light btn-sm">
+                        <i class="bi bi-pin-angle me-1"></i>Novo Fixo
+                    </a>
+                    <a th:href="@{/cartoes/{pid}/{cid}/gasto/novo(pid=${pessoa.id}, cid=${cartao.id}, fixo=false, mes=${mesAtual}, ano=${anoAtual})}"
+                       class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>Novo Extra
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div th:if="${#lists.isEmpty(gastos)}" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox display-6"></i>
+                    <p class="mt-2">Nenhum gasto nesta fatura</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(gastos)}" class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th class="text-end">Valor (R$)</th>
+                                <th class="text-center" style="width: 120px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="gasto : ${gastos}">
+                                <td>
+                                    <span th:if="${gasto.fixo}" class="badge bg-danger-subtle text-danger">
+                                        <i class="bi bi-pin-angle"></i> Fixo mensal
+                                    </span>
+                                    <span th:if="${!gasto.fixo and gasto.parcelado}" class="badge bg-info-subtle text-info">
+                                        <i class="bi bi-layers"></i>
+                                        Parcela <span th:text="${gasto.parcelaAtual}">1</span>/<span th:text="${gasto.totalParcelas}">10</span>
+                                    </span>
+                                    <span th:if="${!gasto.fixo and !gasto.parcelado}" class="badge bg-warning-subtle text-warning">
+                                        <i class="bi bi-cart"></i> Extra
+                                    </span>
+                                </td>
+                                <td th:text="${gasto.descricao}">Descrição</td>
+                                <td class="text-end fw-bold text-danger"
+                                    th:text="${#numbers.formatDecimal(gasto.valorExibido, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-center">
+                                    <a th:href="@{/cartoes/{pid}/{cid}/gasto/{id}/editar(pid=${pessoa.id}, cid=${cartao.id}, id=${gasto.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                       class="btn btn-outline-primary btn-sm" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    <a th:href="@{/cartoes/{pid}/{cid}/gasto/{id}/excluir(pid=${pessoa.id}, cid=${cartao.id}, id=${gasto.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirm('Excluir este gasto do cartão?')" title="Excluir"><i class="bi bi-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-danger">
+                            <tr>
+                                <td colspan="2" class="fw-bold">Total da Fatura</td>
+                                <td class="text-end fw-bold"
+                                    th:text="${#numbers.formatDecimal(totalFatura, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

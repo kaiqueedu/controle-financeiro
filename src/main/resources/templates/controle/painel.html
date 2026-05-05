@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Painel Financeiro</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="container">
+        <!-- Mensagem de sucesso -->
+        <div th:if="${mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${mensagem}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <!-- Cabeçalho com nome e navegação de mês -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-person-circle text-primary me-2"></i>
+                    <span th:text="${pessoa.nome}">Nome</span>
+                </h3>
+                <a th:href="@{/}" class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>Voltar para lista
+                </a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a th:href="@{/controle/{id}(id=${pessoa.id}, mes=${mesAnteriorMes}, ano=${mesAnteriorAno})}"
+                   class="btn btn-outline-primary btn-nav-mes" title="Mês anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <h4 class="mb-0 text-capitalize px-4 py-2 rounded-pill text-white"
+                    th:style="'background-color: ' + ${corMes}">
+                    <span th:text="${nomeMes}">Mês</span> <span th:text="${anoAtual}">Ano</span>
+                </h4>
+                <a th:href="@{/controle/{id}(id=${pessoa.id}, mes=${mesSeguinteMes}, ano=${mesSeguinteAno})}"
+                   class="btn btn-outline-primary btn-nav-mes" title="Próximo mês">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Cards de Resumo -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card resumo-card border-start border-4 border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small">Total Receitas</p>
+                                <h4 class="text-success mb-0" th:text="${#numbers.formatDecimal(totalReceitas, 1, 'POINT', 2, 'COMMA')}">0,00</h4>
+                            </div>
+                            <i class="bi bi-arrow-up-circle display-6 text-success opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card resumo-card border-start border-4 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small">Total Gastos</p>
+                                <h4 class="text-danger mb-0" th:text="${#numbers.formatDecimal(totalGastos, 1, 'POINT', 2, 'COMMA')}">0,00</h4>
+                            </div>
+                            <i class="bi bi-arrow-down-circle display-6 text-danger opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card resumo-card border-start border-4 border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small">Total Pago</p>
+                                <h4 class="text-warning mb-0" th:text="${#numbers.formatDecimal(totalPagos, 1, 'POINT', 2, 'COMMA')}">0,00</h4>
+                            </div>
+                            <i class="bi bi-check-circle display-6 text-warning opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card resumo-card border-start border-4" th:classappend="${saldo.signum() >= 0 ? 'border-info' : 'border-danger'}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small">Saldo Previsto</p>
+                                <h4 class="mb-0" th:classappend="${saldo.signum() >= 0 ? 'text-info' : 'text-danger'}"
+                                    th:text="${(saldo.signum() < 0 ? '-' : '') + #numbers.formatDecimal(saldo.abs(), 1, 'POINT', 2, 'COMMA')}">0,00</h4>
+                            </div>
+                            <i class="bi bi-wallet2 display-6 opacity-50" th:classappend="${saldo.signum() >= 0 ? 'text-info' : 'text-danger'}"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECEITAS -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 flex-grow-1 section-toggle" style="cursor: pointer;"
+                    data-bs-toggle="collapse" data-bs-target="#collapseReceitas">
+                    <i class="bi bi-chevron-down me-1 collapse-icon"></i>
+                    <i class="bi bi-arrow-up-circle me-1"></i>Receitas
+                    <span class="badge bg-light text-success ms-2 small">Fixas — todos os meses</span>
+                </h5>
+                <a th:href="@{/controle/{id}/receita/nova(id=${pessoa.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Nova Receita
+                </a>
+            </div>
+            <div class="collapse show" id="collapseReceitas">
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(receitas)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-6"></i>
+                        <p class="mt-2">Nenhuma receita cadastrada</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(receitas)}" class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Dia do recebimento</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                    <th class="text-center" style="width: 120px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="receita : ${receitas}">
+                                    <td th:text="${receita.descricao}">Descrição</td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success">
+                                            Dia <span th:text="${receita.diaRecebimento}">1</span>
+                                        </span>
+                                    </td>
+                                    <td class="text-end fw-bold text-success"
+                                        th:text="${#numbers.formatDecimal(receita.valor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td class="text-center">
+                                        <a th:href="@{/controle/{pid}/receita/{id}/editar(pid=${pessoa.id}, id=${receita.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-primary btn-sm" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/receita/{id}/excluir(pid=${pessoa.id}, id=${receita.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-danger btn-sm"
+                                           onclick="return confirm('Excluir esta receita? Ela será removida de todos os meses.')" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-success">
+                                <tr>
+                                    <td colspan="2" class="fw-bold">Total Receitas</td>
+                                    <td class="text-end fw-bold"
+                                        th:text="${#numbers.formatDecimal(totalReceitas, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GASTOS FIXOS -->
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 flex-grow-1 section-toggle" style="cursor: pointer;"
+                    data-bs-toggle="collapse" data-bs-target="#collapseFixos">
+                    <i class="bi bi-chevron-down me-1 collapse-icon"></i>
+                    <i class="bi bi-pin-angle me-1"></i>Gastos Fixos
+                    <span class="badge bg-light text-danger ms-2 small">Fixos — todos os meses</span>
+                </h5>
+                <a th:href="@{/controle/{id}/gasto/novo(id=${pessoa.id}, mes=${mesAtual}, ano=${anoAtual}, tipo='FIXO')}"
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Novo Gasto Fixo
+                </a>
+            </div>
+            <div class="collapse show" id="collapseFixos">
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(gastosFixos)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-6"></i>
+                        <p class="mt-2">Nenhum gasto fixo cadastrado</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(gastosFixos)}" class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Descrição</th>
+                                    <th>Vencimento</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                    <th class="text-center" style="width: 180px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="gasto : ${gastosFixos}" th:classappend="${gasto.pago ? 'gasto-pago' : ''}">
+                                    <td>
+                                        <span th:if="${gasto.pago}" class="badge badge-pago">
+                                            <i class="bi bi-check-lg"></i> Pago
+                                        </span>
+                                        <span th:unless="${gasto.pago}" class="badge badge-pendente">
+                                            <i class="bi bi-clock"></i> Pendente
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${gasto.descricao}">Descrição</span>
+                                        <span th:if="${gasto.valorCustomizado}" class="badge bg-light text-muted border ms-1" title="Valor editado para este mês">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(gasto.dataVencimentoCompleta, 'dd/MM/yyyy')}"
+                                              th:classappend="${!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())} ? 'vencido'">
+                                            01/01/2024
+                                        </span>
+                                        <i th:if="${!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())}"
+                                           class="bi bi-exclamation-triangle text-danger ms-1" title="Vencido!"></i>
+                                    </td>
+                                    <td class="text-end fw-bold text-danger"
+                                        th:text="${#numbers.formatDecimal(gasto.valor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td class="text-center">
+                                        <a th:if="${!gasto.pago}"
+                                           th:href="@{/controle/{pid}/gasto/{id}/pagar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-success btn-sm" title="Marcar como pago">
+                                            <i class="bi bi-check-lg"></i>
+                                        </a>
+                                        <a th:if="${gasto.pago}"
+                                           th:href="@{/controle/{pid}/gasto/{id}/despagar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-warning btn-sm" title="Desmarcar pagamento">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/valor-mes(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-secondary btn-sm" title="Editar valor deste mês">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/encerrar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-dark btn-sm"
+                                           onclick="return confirm('Encerrar este gasto? Ele não aparecerá mais a partir do próximo mês, mas o histórico será mantido.')"
+                                           title="Encerrar (não aparece mais nos próximos meses)">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/excluir(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-danger btn-sm"
+                                           onclick="return confirm('Excluir permanentemente este gasto de TODOS os meses (inclusive histórico)?')" title="Excluir permanentemente">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-danger">
+                                <tr>
+                                    <td colspan="3" class="fw-bold">Total Gastos Fixos</td>
+                                    <td class="text-end fw-bold"
+                                        th:text="${#numbers.formatDecimal(totalFixos, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GASTOS VARIÁVEIS -->
+        <div class="card mb-4">
+            <div class="card-header text-white d-flex justify-content-between align-items-center"
+                 style="background-color: #e67e22;">
+                <h5 class="mb-0 flex-grow-1 section-toggle" style="cursor: pointer;"
+                    data-bs-toggle="collapse" data-bs-target="#collapseVariaveis">
+                    <i class="bi bi-chevron-down me-1 collapse-icon"></i>
+                    <i class="bi bi-shuffle me-1"></i>Gastos Variáveis
+                </h5>
+                <a th:href="@{/controle/{id}/gasto/novo(id=${pessoa.id}, mes=${mesAtual}, ano=${anoAtual}, tipo='VARIAVEL')}"
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Novo Gasto Variável
+                </a>
+            </div>
+            <div class="collapse show" id="collapseVariaveis">
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(gastosVariaveis)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-6"></i>
+                        <p class="mt-2">Nenhum gasto variável neste mês</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(gastosVariaveis)}" class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Descrição</th>
+                                    <th>Vencimento</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                    <th class="text-center" style="width: 180px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="gasto : ${gastosVariaveis}" th:classappend="${gasto.pago ? 'gasto-pago' : ''}">
+                                    <td>
+                                        <span th:if="${gasto.pago}" class="badge badge-pago">
+                                            <i class="bi bi-check-lg"></i> Pago
+                                        </span>
+                                        <span th:unless="${gasto.pago}" class="badge badge-pendente">
+                                            <i class="bi bi-clock"></i> Pendente
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${gasto.descricao}">Descrição</span>
+                                        <span th:if="${gasto.recorrente}" class="badge bg-info-subtle text-info ms-1" title="Recorrente">
+                                            <i class="bi bi-arrow-repeat"></i> Recorrente
+                                        </span>
+                                        <span th:if="${gasto.parcelado}" class="badge bg-purple-subtle ms-1" style="background-color: #e8daef; color: #6c3483;" title="Parcelado">
+                                            <i class="bi bi-layers"></i> Parcela
+                                        </span>
+                                        <span th:if="${gasto.valorCustomizado}" class="badge bg-light text-muted border ms-1" title="Valor editado para este mês">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(gasto.dataVencimentoCompleta, 'dd/MM/yyyy')}"
+                                              th:classappend="${!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())} ? 'vencido'">
+                                            01/01/2024
+                                        </span>
+                                        <i th:if="${!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())}"
+                                           class="bi bi-exclamation-triangle text-danger ms-1" title="Vencido!"></i>
+                                    </td>
+                                    <td class="text-end fw-bold" style="color: #e67e22;"
+                                        th:text="${#numbers.formatDecimal(gasto.valor, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td class="text-center">
+                                        <a th:if="${!gasto.pago}"
+                                           th:href="@{/controle/{pid}/gasto/{id}/pagar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-success btn-sm" title="Marcar como pago">
+                                            <i class="bi bi-check-lg"></i>
+                                        </a>
+                                        <a th:if="${gasto.pago}"
+                                           th:href="@{/controle/{pid}/gasto/{id}/despagar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-warning btn-sm" title="Desmarcar pagamento">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </a>
+                                        <a th:if="${gasto.recorrente or gasto.parcelado}"
+                                           th:href="@{/controle/{pid}/gasto/{id}/valor-mes(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-secondary btn-sm" title="Editar valor deste mês">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/editar(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-primary btn-sm" title="Editar gasto">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/excluir(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-danger btn-sm"
+                                           onclick="return confirm('Excluir este gasto de todos os meses?')" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style="background-color: #fdebd0;">
+                                <tr>
+                                    <td colspan="3" class="fw-bold">Total Gastos Variáveis</td>
+                                    <td class="text-end fw-bold"
+                                        th:text="${#numbers.formatDecimal(totalVariaveis, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTÕES DE CRÉDITO -->
+        <div class="card mb-4">
+            <div class="card-header text-white d-flex justify-content-between align-items-center"
+                 style="background-color: #c0392b;">
+                <h5 class="mb-0 flex-grow-1 section-toggle" style="cursor: pointer;"
+                    data-bs-toggle="collapse" data-bs-target="#collapseCartoes">
+                    <i class="bi bi-chevron-down me-1 collapse-icon"></i>
+                    <i class="bi bi-credit-card-2-front me-1"></i>Cartões de Crédito
+                    <span class="badge bg-light text-danger ms-2 small"
+                          th:text="'R$ ' + ${#numbers.formatDecimal(totalCartoes, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                </h5>
+                <a th:href="@{/cartoes/{id}(id=${pessoa.id})}" class="btn btn-light btn-sm">
+                    <i class="bi bi-gear me-1"></i>Gerenciar Cartões
+                </a>
+            </div>
+            <div class="collapse show" id="collapseCartoes">
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(cartoesResumo)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-credit-card display-6"></i>
+                        <p class="mt-2">Nenhum cartão cadastrado</p>
+                        <a th:href="@{/cartoes/{id}(id=${pessoa.id})}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Cadastrar Cartão
+                        </a>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(cartoesResumo)}" class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Cartão</th>
+                                    <th>Vencimento</th>
+                                    <th class="text-end">Fatura (R$)</th>
+                                    <th class="text-center" style="width: 180px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="cartao : ${cartoesResumo}" th:classappend="${cartao.pago ? 'gasto-pago' : ''}">
+                                    <td>
+                                        <span th:if="${cartao.pago}" class="badge badge-pago">
+                                            <i class="bi bi-check-lg"></i> Paga
+                                        </span>
+                                        <span th:unless="${cartao.pago}" class="badge badge-pendente">
+                                            <i class="bi bi-clock"></i> Pendente
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-credit-card-2-front text-danger me-1"></i>
+                                        <span th:text="${cartao.nome}">Cartão</span>
+                                        <span th:if="${cartao.bandeira}" class="text-muted small ms-1" th:text="'(' + ${cartao.bandeira} + ')'">Visa</span>
+                                    </td>
+                                    <td>Dia <span th:text="${cartao.diaVencimento}">10</span></td>
+                                    <td class="text-end fw-bold" style="color: #c0392b;"
+                                        th:text="${#numbers.formatDecimal(cartao.totalFatura, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td class="text-center">
+                                        <a th:if="${!cartao.pago}"
+                                           th:href="@{/cartoes/{pid}/{cid}/pagar(pid=${pessoa.id}, cid=${cartao.cartaoId}, mes=${mesAtual}, ano=${anoAtual}, origem='painel')}"
+                                           class="btn btn-outline-success btn-sm" title="Marcar como paga">
+                                            <i class="bi bi-check-lg"></i>
+                                        </a>
+                                        <a th:if="${cartao.pago}"
+                                           th:href="@{/cartoes/{pid}/{cid}/despagar(pid=${pessoa.id}, cid=${cartao.cartaoId}, mes=${mesAtual}, ano=${anoAtual}, origem='painel')}"
+                                           class="btn btn-outline-warning btn-sm" title="Desmarcar pagamento">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </a>
+                                        <a th:href="@{/cartoes/{pid}/{cid}/fatura(pid=${pessoa.id}, cid=${cartao.cartaoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="btn btn-outline-danger btn-sm" title="Ver fatura">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style="background-color: #f5b7b1;">
+                                <tr>
+                                    <td colspan="3" class="fw-bold">Total Cartões</td>
+                                    <td class="text-end fw-bold"
+                                        th:text="${#numbers.formatDecimal(totalCartoes, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        document.querySelectorAll('.section-toggle').forEach(function(toggle) {
+            var targetSelector = toggle.getAttribute('data-bs-target');
+            var target = document.querySelector(targetSelector);
+            var icon = toggle.querySelector('.collapse-icon');
+            target.addEventListener('hide.bs.collapse', function() {
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-right');
+            });
+            target.addEventListener('show.bs.collapse', function() {
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-down');
+            });
+        });
+    </script>
+</body>
+</html>

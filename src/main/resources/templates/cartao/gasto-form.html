@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Gasto do Cartão</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-credit-card me-2"></i>
+                            <span th:text="${gastoCartao.id != null ? 'Editar Gasto' : 'Novo Gasto'}">Gasto</span>
+                            — <span th:text="${cartao.nome}">Cartão</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info small" th:if="${gastoCartao.fixo}">
+                            <i class="bi bi-pin-angle me-1"></i>
+                            <strong>Gasto fixo do cartão</strong> — aparece automaticamente em todas as faturas.
+                        </div>
+                        <div class="alert alert-warning small" th:unless="${gastoCartao.fixo}">
+                            <i class="bi bi-cart me-1"></i>
+                            <strong>Gasto extra</strong> — aparece na fatura do mês atual. Pode ser parcelado.
+                        </div>
+
+                        <form th:action="@{/cartoes/{pid}/{cid}/gasto/salvar(pid=${pessoa.id}, cid=${cartao.id})}"
+                              th:object="${gastoCartao}" method="post">
+                            <input type="hidden" th:field="*{id}">
+                            <input type="hidden" th:field="*{fixo}">
+                            <input type="hidden" th:field="*{mesReferencia}">
+                            <input type="hidden" th:field="*{anoReferencia}">
+                            <input type="hidden" name="mesAtual" th:value="${mesAtual}">
+                            <input type="hidden" name="anoAtual" th:value="${anoAtual}">
+
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="descricao" th:field="*{descricao}"
+                                       th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"
+                                       placeholder="Ex: Netflix, Spotify, Compra Loja X" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}">Erro</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="valor" class="form-label">Valor total (R$) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="valor" th:field="*{valor}"
+                                       th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'"
+                                       step="0.01" min="0.01" placeholder="0,00" required
+                                       oninput="calcularParcela()">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}">Erro</div>
+                            </div>
+
+                            <!-- Parcelamento — só para gastos extras -->
+                            <div th:unless="${gastoCartao.fixo}" id="parcelamentoGroup">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="parcelado" th:field="*{parcelado}"
+                                           onchange="toggleParcelas()">
+                                    <label class="form-check-label" for="parcelado">
+                                        <i class="bi bi-layers me-1"></i>Parcelado
+                                    </label>
+                                </div>
+
+                                <div id="parcelasConfig" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="totalParcelas" class="form-label">Número de parcelas</label>
+                                        <input type="number" class="form-control" id="totalParcelas" th:field="*{totalParcelas}"
+                                               min="2" max="48" placeholder="Ex: 10"
+                                               oninput="calcularParcela()">
+                                    </div>
+                                    <div id="previewParcela" class="alert alert-light border mb-3" style="display: none;">
+                                        <i class="bi bi-calculator me-1"></i>
+                                        Valor da parcela: <strong id="valorParcela">R$ 0,00</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-danger"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+                                <a th:href="@{/cartoes/{pid}/{cid}/fatura(pid=${pessoa.id}, cid=${cartao.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                   class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        function toggleParcelas() {
+            var checked = document.getElementById('parcelado').checked;
+            var config = document.getElementById('parcelasConfig');
+            config.style.display = checked ? 'block' : 'none';
+            if (!checked) {
+                document.getElementById('totalParcelas').value = '';
+                document.getElementById('previewParcela').style.display = 'none';
+            }
+            calcularParcela();
+        }
+
+        function calcularParcela() {
+            var valor = parseFloat(document.getElementById('valor').value) || 0;
+            var parcelas = parseInt(document.getElementById('totalParcelas').value) || 0;
+            var preview = document.getElementById('previewParcela');
+
+            if (valor > 0 && parcelas >= 2) {
+                var valorParcela = (valor / parcelas).toFixed(2);
+                document.getElementById('valorParcela').textContent = 'R$ ' + valorParcela.replace('.', ',');
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleParcelas();
+        });
+    </script>
+</body>
+</html>
