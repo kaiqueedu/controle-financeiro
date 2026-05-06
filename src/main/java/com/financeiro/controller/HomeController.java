@@ -15,6 +15,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("pessoas", pessoaService.listarTodas());
+        model.addAttribute("pageTitle", "Home");
         return "home";
     }
 }

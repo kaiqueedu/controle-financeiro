@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Renomear Gasto</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-pencil-fill me-2"></i>Renomear Gasto</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/controle/{pid}/gasto/{id}/renomear(pid=${pessoa.id}, id=${gasto.id})}" method="post">
+                            <input type="hidden" name="mes" th:value="${mesAtual}">
+                            <input type="hidden" name="ano" th:value="${anoAtual}">
+
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Nome do gasto</label>
+                                <input type="text" class="form-control" id="descricao" name="descricao"
+                                       th:value="${gasto.descricao}" required autofocus>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+                                <a th:href="@{/controle/{id}(id=${pessoa.id}, mes=${mesAtual}, ano=${anoAtual})}"
+                                   class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

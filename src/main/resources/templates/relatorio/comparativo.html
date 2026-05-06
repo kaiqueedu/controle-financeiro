@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Comparativo Mensal</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+
+        <!-- Cabeçalho -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-arrow-left-right text-secondary me-2"></i>
+                    Comparativo — <span th:text="${pessoa.nome}">Nome</span>
+                </h3>
+                <a th:href="@{/relatorio/{id}(id=${pessoa.id}, mes=${resumo1.mes}, ano=${resumo1.ano})}" class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>Voltar ao relatório
+                </a>
+            </div>
+        </div>
+
+        <!-- Título da comparação -->
+        <div class="text-center mb-4">
+            <h4>
+                <span class="badge bg-primary text-capitalize fs-6 px-3 py-2"
+                      th:text="${resumo1.nomeMes} + ' ' + ${resumo1.ano}">Mês 1</span>
+                <i class="bi bi-arrow-left-right mx-3 text-muted"></i>
+                <span class="badge bg-secondary text-capitalize fs-6 px-3 py-2"
+                      th:text="${resumo2.nomeMes} + ' ' + ${resumo2.ano}">Mês 2</span>
+            </h4>
+        </div>
+
+        <!-- Tabela comparativa -->
+        <div class="card mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Categoria</th>
+                                <th class="text-end text-capitalize" th:text="${resumo1.nomeMes} + ' ' + ${resumo1.ano}">Mês 1</th>
+                                <th class="text-end text-capitalize" th:text="${resumo2.nomeMes} + ' ' + ${resumo2.ano}">Mês 2</th>
+                                <th class="text-end">Diferença</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Receitas -->
+                            <tr>
+                                <td><i class="bi bi-arrow-up-circle text-success me-2"></i>Receitas</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.totalReceitas, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.totalReceitas, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold"
+                                    th:classappend="${diffReceitas.signum() > 0 ? 'text-success' : (diffReceitas.signum() < 0 ? 'text-danger' : '')}">
+                                    <span th:if="${diffReceitas.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffReceitas, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                            <!-- Gastos Fixos -->
+                            <tr>
+                                <td><i class="bi bi-pin-angle text-danger me-2"></i>Gastos Fixos</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.totalGastosFixos, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.totalGastosFixos, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold"
+                                    th:classappend="${diffFixos.signum() > 0 ? 'text-danger' : (diffFixos.signum() < 0 ? 'text-success' : '')}">
+                                    <span th:if="${diffFixos.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffFixos, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                            <!-- Gastos Variáveis -->
+                            <tr>
+                                <td><i class="bi bi-shuffle me-2" style="color: #e67e22;"></i>Gastos Variáveis</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.totalGastosVariaveis, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.totalGastosVariaveis, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold"
+                                    th:classappend="${diffVariaveis.signum() > 0 ? 'text-danger' : (diffVariaveis.signum() < 0 ? 'text-success' : '')}">
+                                    <span th:if="${diffVariaveis.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffVariaveis, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                            <!-- Cartões -->
+                            <tr>
+                                <td><i class="bi bi-credit-card-2-front me-2" style="color: #c0392b;"></i>Cartões de Crédito</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.totalCartoes, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.totalCartoes, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold"
+                                    th:classappend="${diffCartoes.signum() > 0 ? 'text-danger' : (diffCartoes.signum() < 0 ? 'text-success' : '')}">
+                                    <span th:if="${diffCartoes.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffCartoes, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                            <!-- Total Gastos -->
+                            <tr class="table-danger">
+                                <td class="fw-bold"><i class="bi bi-arrow-down-circle me-2"></i>Total Gastos</td>
+                                <td class="text-end fw-bold" th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.totalGastos, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold" th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.totalGastos, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold"
+                                    th:classappend="${diffGastos.signum() > 0 ? 'text-danger' : (diffGastos.signum() < 0 ? 'text-success' : '')}">
+                                    <span th:if="${diffGastos.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffGastos, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                            <!-- Saldo -->
+                            <tr class="table-light">
+                                <td class="fw-bold fs-5"><i class="bi bi-wallet2 me-2"></i>Saldo</td>
+                                <td class="text-end fw-bold fs-5"
+                                    th:classappend="${resumo1.saldoPositivo ? 'text-success' : 'text-danger'}"
+                                    th:text="'R$ ' + ${#numbers.formatDecimal(resumo1.saldo, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold fs-5"
+                                    th:classappend="${resumo2.saldoPositivo ? 'text-success' : 'text-danger'}"
+                                    th:text="'R$ ' + ${#numbers.formatDecimal(resumo2.saldo, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold fs-5"
+                                    th:classappend="${diffSaldo.signum() >= 0 ? 'text-success' : 'text-danger'}">
+                                    <span th:if="${diffSaldo.signum() > 0}">+</span>
+                                    <span th:text="'R$ ' + ${#numbers.formatDecimal(diffSaldo, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas de aumento significativo -->
+        <div th:unless="${#lists.isEmpty(alertas)}" class="card mb-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção — Gastos que subiram 15% ou mais</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Gasto</th>
+                                <th>Categoria</th>
+                                <th class="text-end text-capitalize" th:text="${resumo1.nomeMes}">Mês 1</th>
+                                <th class="text-end text-capitalize" th:text="${resumo2.nomeMes}">Mês 2</th>
+                                <th class="text-end">Aumento</th>
+                                <th class="text-end">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="alerta : ${alertas}">
+                                <td class="fw-bold" th:text="${alerta.descricao}">Gasto</td>
+                                <td><span class="badge bg-light text-dark border" th:text="${alerta.categoria}">Cat</span></td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(alerta.valorMes1, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(alerta.valorMes2, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+                                <td class="text-end fw-bold text-danger"
+                                    th:text="'+R$ ' + ${#numbers.formatDecimal(alerta.diferenca, 1, 'POINT', 2, 'COMMA')}">+0,00</td>
+                                <td class="text-end">
+                                    <span class="badge bg-danger"
+                                          th:text="'+' + ${#numbers.formatDecimal(alerta.percentualAumento, 1, 'POINT', 1, 'COMMA')} + '%'">+15%</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise rápida -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2 text-warning"></i>Análise</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li th:if="${diffGastos.signum() > 0}" class="mb-2">
+                        <i class="bi bi-arrow-up text-danger me-1"></i>
+                        Você gastou <strong class="text-danger" th:text="'R$ ' + ${#numbers.formatDecimal(diffGastos.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>
+                        a mais em <span class="text-capitalize" th:text="${resumo2.nomeMes}">mês2</span>.
+                    </li>
+                    <li th:if="${diffGastos.signum() < 0}" class="mb-2">
+                        <i class="bi bi-arrow-down text-success me-1"></i>
+                        Você gastou <strong class="text-success" th:text="'R$ ' + ${#numbers.formatDecimal(diffGastos.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>
+                        a menos em <span class="text-capitalize" th:text="${resumo2.nomeMes}">mês2</span>.
+                    </li>
+                    <li th:if="${diffReceitas.signum() > 0}" class="mb-2">
+                        <i class="bi bi-arrow-up text-success me-1"></i>
+                        Receitas aumentaram <strong class="text-success" th:text="'R$ ' + ${#numbers.formatDecimal(diffReceitas.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>.
+                    </li>
+                    <li th:if="${diffReceitas.signum() < 0}" class="mb-2">
+                        <i class="bi bi-arrow-down text-danger me-1"></i>
+                        Receitas diminuíram <strong class="text-danger" th:text="'R$ ' + ${#numbers.formatDecimal(diffReceitas.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>.
+                    </li>
+                    <li th:if="${diffSaldo.signum() > 0}" class="mb-2">
+                        <i class="bi bi-emoji-smile text-success me-1"></i>
+                        Saldo melhorou em <strong class="text-success" th:text="'R$ ' + ${#numbers.formatDecimal(diffSaldo.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>.
+                    </li>
+                    <li th:if="${diffSaldo.signum() < 0}" class="mb-2">
+                        <i class="bi bi-emoji-frown text-danger me-1"></i>
+                        Saldo piorou em <strong class="text-danger" th:text="'R$ ' + ${#numbers.formatDecimal(diffSaldo.abs(), 1, 'POINT', 2, 'COMMA')}">0</strong>.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Voltar -->
+        <div class="text-center mb-4">
+            <a th:href="@{/relatorio/{id}(id=${pessoa.id}, mes=${resumo1.mes}, ano=${resumo1.ano})}" class="btn btn-primary">
+                <i class="bi bi-arrow-left me-1"></i>Voltar ao Relatório
+            </a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

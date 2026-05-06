@@ -197,7 +197,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="gasto : ${gastosFixos}" th:classappend="${gasto.pago ? 'gasto-pago' : ''}">
+                                <tr th:each="gasto : ${gastosFixos}" th:classappend="${gasto.pago ? 'gasto-pago' : (!gasto.pago and gasto.dataVencimentoCompleta.isEqual(T(java.time.LocalDate).now())) ? 'gasto-vence-hoje' : (!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())) ? 'gasto-vencido' : ''}">
                                     <td>
                                         <span th:if="${gasto.pago}" class="badge badge-pago">
                                             <i class="bi bi-check-lg"></i> Pago
@@ -208,6 +208,10 @@
                                     </td>
                                     <td>
                                         <span th:text="${gasto.descricao}">Descrição</span>
+                                        <a th:href="@{/controle/{pid}/gasto/{id}/renomear(pid=${pessoa.id}, id=${gasto.gastoId}, mes=${mesAtual}, ano=${anoAtual})}"
+                                           class="text-muted ms-1" title="Editar nome" style="font-size: 0.8em;">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
                                         <span th:if="${gasto.valorCustomizado}" class="badge bg-light text-muted border ms-1" title="Valor editado para este mês">
                                             <i class="bi bi-pencil-square"></i>
                                         </span>
@@ -297,7 +301,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="gasto : ${gastosVariaveis}" th:classappend="${gasto.pago ? 'gasto-pago' : ''}">
+                                <tr th:each="gasto : ${gastosVariaveis}" th:classappend="${gasto.pago ? 'gasto-pago' : (!gasto.pago and gasto.dataVencimentoCompleta.isEqual(T(java.time.LocalDate).now())) ? 'gasto-vence-hoje' : (!gasto.pago and gasto.dataVencimentoCompleta.isBefore(T(java.time.LocalDate).now())) ? 'gasto-vencido' : ''}">
                                     <td>
                                         <span th:if="${gasto.pago}" class="badge badge-pago">
                                             <i class="bi bi-check-lg"></i> Pago

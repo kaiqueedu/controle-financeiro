@@ -105,6 +105,7 @@ public class ControleController {
         model.addAttribute("mesSeguinteMes", mesSeguinte.getMonthValue());
         model.addAttribute("mesSeguinteAno", mesSeguinte.getYear());
         model.addAttribute("corMes", corMes);
+        model.addAttribute("pageTitle", pessoa.getNome());
 
         return "controle/painel";
     }
@@ -297,6 +298,33 @@ public class ControleController {
     }
 
     // ==================== ENCERRAR GASTO FIXO ====================
+
+    @GetMapping("/{pessoaId}/gasto/{id}/renomear")
+    public String formularioRenomear(@PathVariable Long pessoaId,
+                                      @PathVariable Long id,
+                                      @RequestParam int mes,
+                                      @RequestParam int ano,
+                                      Model model) {
+        model.addAttribute("gasto", gastoService.buscarPorId(id));
+        model.addAttribute("pessoa", pessoaService.buscarPorId(pessoaId));
+        model.addAttribute("mesAtual", mes);
+        model.addAttribute("anoAtual", ano);
+        return "controle/renomear-form";
+    }
+
+    @PostMapping("/{pessoaId}/gasto/{id}/renomear")
+    public String salvarRenomear(@PathVariable Long pessoaId,
+                                  @PathVariable Long id,
+                                  @RequestParam String descricao,
+                                  @RequestParam int mes,
+                                  @RequestParam int ano,
+                                  RedirectAttributes redirectAttributes) {
+        var gasto = gastoService.buscarPorId(id);
+        gasto.setDescricao(descricao);
+        gastoService.salvar(gasto, pessoaId, mes, ano);
+        redirectAttributes.addFlashAttribute("mensagem", "Nome atualizado!");
+        return "redirect:/controle/" + pessoaId + "?mes=" + mes + "&ano=" + ano;
+    }
 
     @GetMapping("/{pessoaId}/gasto/{id}/encerrar")
     public String encerrarGasto(@PathVariable Long pessoaId,

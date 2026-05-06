@@ -13,15 +13,23 @@
             <span th:text="${mensagem}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
+        <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${erro}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
 
         <div class="row mb-4">
             <div class="col">
                 <h2><i class="bi bi-people me-2"></i>Pessoas Cadastradas</h2>
                 <p class="text-muted">Selecione uma pessoa para gerenciar o controle financeiro</p>
             </div>
-            <div class="col-auto">
+            <div class="col-auto d-flex gap-2">
                 <a th:href="@{/pessoas/nova}" class="btn btn-primary">
                     <i class="bi bi-person-plus me-1"></i>Nova Pessoa
+                </a>
+                <a th:href="@{/backup/importar}" class="btn btn-outline-secondary">
+                    <i class="bi bi-upload me-1"></i>Importar Dados
                 </a>
             </div>
         </div>
@@ -48,11 +56,17 @@
                             <a th:href="@{/controle/{id}(id=${pessoa.id})}" class="btn btn-primary">
                                 <i class="bi bi-bar-chart me-1"></i>Controle
                             </a>
+                            <a th:href="@{/relatorio/{id}(id=${pessoa.id})}" class="btn btn-info text-white">
+                                <i class="bi bi-file-earmark-bar-graph me-1"></i>Relatório
+                            </a>
                             <a th:href="@{/cartoes/{id}(id=${pessoa.id})}" class="btn btn-danger">
                                 <i class="bi bi-credit-card-2-front me-1"></i>Cartões
                             </a>
                             <a th:href="@{/investimentos/{id}(id=${pessoa.id})}" class="btn text-white" style="background-color: #6f42c1;">
                                 <i class="bi bi-graph-up-arrow me-1"></i>Investimentos
+                            </a>
+                            <a th:href="@{/backup/{id}/exportar(id=${pessoa.id})}" class="btn btn-outline-success btn-sm" title="Exportar dados">
+                                <i class="bi bi-download"></i>
                             </a>
                             <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-pencil"></i>

@@ -32,6 +32,7 @@ public class InvestimentoController {
         model.addAttribute("investimentos", investimentos);
         model.addAttribute("totalInvestido", totalInvestido);
         model.addAttribute("totalPorBanco", totalPorBanco);
+        model.addAttribute("pageTitle", pessoa.getNome() + " - Investimentos");
         return "investimento/painel";
     }
 

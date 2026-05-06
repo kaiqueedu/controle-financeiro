@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Relatório Mensal</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container">
+
+        <!-- Cabeçalho -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>
+                    Relatório Mensal — <span th:text="${pessoa.nome}">Nome</span>
+                </h3>
+                <div class="d-flex gap-3 mt-1">
+                    <a th:href="@{/}" class="text-muted text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Início</a>
+                    <a th:href="@{/controle/{id}(id=${pessoa.id})}" class="text-muted text-decoration-none"><i class="bi bi-bar-chart me-1"></i>Controle</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seletor de mês -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form class="row g-3 align-items-end" method="get" th:action="@{/relatorio/{id}(id=${pessoa.id})}">
+                    <div class="col-auto">
+                        <label class="form-label">Mês</label>
+                        <select name="mes" class="form-select">
+                            <option value="1" th:selected="${mesAtual == 1}">Janeiro</option>
+                            <option value="2" th:selected="${mesAtual == 2}">Fevereiro</option>
+                            <option value="3" th:selected="${mesAtual == 3}">Março</option>
+                            <option value="4" th:selected="${mesAtual == 4}">Abril</option>
+                            <option value="5" th:selected="${mesAtual == 5}">Maio</option>
+                            <option value="6" th:selected="${mesAtual == 6}">Junho</option>
+                            <option value="7" th:selected="${mesAtual == 7}">Julho</option>
+                            <option value="8" th:selected="${mesAtual == 8}">Agosto</option>
+                            <option value="9" th:selected="${mesAtual == 9}">Setembro</option>
+                            <option value="10" th:selected="${mesAtual == 10}">Outubro</option>
+                            <option value="11" th:selected="${mesAtual == 11}">Novembro</option>
+                            <option value="12" th:selected="${mesAtual == 12}">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label">Ano</label>
+                        <input type="number" name="ano" class="form-control" th:value="${anoAtual}" min="2020" max="2040" style="width: 100px;">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Ver Relatório</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resumo do mês -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-month me-2"></i>
+                    Resumo de <span class="text-capitalize" th:text="${resumo.nomeMes}">Mês</span> <span th:text="${resumo.ano}">Ano</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="ps-4"><i class="bi bi-arrow-up-circle text-success me-2"></i>Total Receitas</td>
+                            <td class="text-end pe-4 fw-bold text-success"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalReceitas, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td colspan="2" class="ps-4 fw-bold text-muted">Gastos por Categoria</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-5"><i class="bi bi-pin-angle text-danger me-2"></i>Gastos Fixos</td>
+                            <td class="text-end pe-4 fw-bold text-danger"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalGastosFixos, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-5"><i class="bi bi-shuffle me-2" style="color: #e67e22;"></i>Gastos Variáveis</td>
+                            <td class="text-end pe-4 fw-bold" style="color: #e67e22;"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalGastosVariaveis, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-5"><i class="bi bi-credit-card-2-front me-2" style="color: #c0392b;"></i>Cartões de Crédito</td>
+                            <td class="text-end pe-4 fw-bold" style="color: #c0392b;"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalCartoes, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td class="ps-4 fw-bold"><i class="bi bi-arrow-down-circle me-2"></i>Total Gastos</td>
+                            <td class="text-end pe-4 fw-bold"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalGastos, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td class="ps-4 fw-bold"><i class="bi bi-check-circle me-2"></i>Total Pago no Mês</td>
+                            <td class="text-end pe-4 fw-bold"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.totalPagos, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                        <tr th:classappend="${resumo.saldoPositivo ? 'table-success' : 'table-danger'}">
+                            <td class="ps-4 fw-bold fs-5">
+                                <i class="bi bi-wallet2 me-2"></i>
+                                <span th:text="${resumo.saldoPositivo ? 'Sobrou no mês' : 'Faltou no mês'}">Saldo</span>
+                            </td>
+                            <td class="text-end pe-4 fw-bold fs-5"
+                                th:text="'R$ ' + ${#numbers.formatDecimal(resumo.saldo.abs(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Comparativo -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Comparar com outro mês</h5>
+            </div>
+            <div class="card-body">
+                <form class="row g-3 align-items-end" method="get" th:action="@{/relatorio/{id}/comparar(id=${pessoa.id})}">
+                    <input type="hidden" name="mes1" th:value="${mesAtual}">
+                    <input type="hidden" name="ano1" th:value="${anoAtual}">
+                    <div class="col-auto">
+                        <label class="form-label">Comparar com</label>
+                        <select name="mes2" class="form-select">
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label">Ano</label>
+                        <input type="number" name="ano2" class="form-control" th:value="${anoAtual}" min="2020" max="2040" style="width: 100px;">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary"><i class="bi bi-arrow-left-right me-1"></i>Comparar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
